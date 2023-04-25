@@ -1,0 +1,42 @@
+db.games.aggregate([
+  {
+    $match:
+      {
+        gid: {gameId},
+      },
+  },
+  {
+    $lookup:
+      {
+        from: "reviews",
+        localField: "gid",
+        foreignField: "gid",
+        as: "reviews",
+      },
+  },
+  {
+    $project:
+      {
+        gid: "$gid",
+        name: "$name",
+        year: "$year",
+        rank: "$ranking",
+        average: {
+          $avg: "$reviews.rating",
+        },
+        users_rated: "$users_rated",
+        url: "$url",
+        thumbnail: "$image",
+        reviews: {
+            $map: {
+                input: "$reviews._id",
+                as: "review_id",
+                in: {$concat: ["/review/", {$toString: "$$review_id"}]}
+            }
+        },
+        timestamp: ISODate(),
+      },
+  },
+]);
+
+// $$ to access the string within object id 

@@ -1,0 +1,47 @@
+db.reviews.aggregate([
+  {
+    $sort:
+      {
+        rating: {-1 (lowest)or 1 (highest)},
+      },
+  },
+  {
+    $group:
+      {
+        _id: "$gid",
+        doc: {
+          $first: "$$ROOT",
+        },
+      },
+  },
+  {
+    $replaceWith:
+      "$doc",
+  },
+  {
+    $lookup:
+      {
+        from: "games",
+        localField: "gid",
+        foreignField: "gid",
+        as: "games",
+      },
+  },
+  {
+    $unwind:
+      {
+        path: "$games",
+      },
+  },
+  {
+    $project:
+      {
+        _id: "$_id",
+        name: "$games.name",
+        rating: "$rating",
+        user: "$user",
+        comment: "$c_text",
+        review_id: "$c_id",
+      },
+  },
+]);
